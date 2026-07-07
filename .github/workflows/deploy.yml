@@ -1,20 +1,31 @@
-name: Test SSH
+name: Deploy
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  ssh-test:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Execute commands on server
+      - name: Deploy to Server
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.DEPLOY_SERVER_IP }}
           username: ${{ secrets.DEPLOY_SERVER_USER }}
           key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
           script: |
-            hostname
-            whoami
-            pwd
+            cd /var/www/html/Webtracker-Tool-2026
+
+            git pull origin main
+
+            # Laravel
+          #  composer install --no-interaction --prefer-dist --optimize-autoloader
+          #  php artisan migrate --force
+          #  php artisan optimize
+
+            # If you use Node.js
+            # npm install
+            # npm run build
