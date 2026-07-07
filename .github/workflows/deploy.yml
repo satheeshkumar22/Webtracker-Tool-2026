@@ -1,0 +1,34 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Pull latest code
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_SERVER_USER }}@${{ secrets.DEPLOY_SERVER_IP }} << 'EOF'
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+
+            # Optional
+            # sudo systemctl restart nginx
+            # sudo systemctl restart php8.3-fpm
+            # sudo systemctl restart your-service
+          EOF
